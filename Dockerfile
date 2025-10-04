@@ -1,5 +1,5 @@
 # Base sólida com APT estável
-FROM python:3.12-bookworm
+FROM python:latest
 
 LABEL org.opencontainers.image.source="https://github.com/DZ-IO/nftables-gui"
 LABEL org.opencontainers.image.description="Web UI para configurar nftables (com suporte a Docker)"
