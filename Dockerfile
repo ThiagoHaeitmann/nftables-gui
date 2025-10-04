@@ -1,15 +1,13 @@
-# Base sólida com APT estável
-FROM python:latest
+FROM python:3.13-bookworm
 
 LABEL org.opencontainers.image.source="https://github.com/DZ-IO/nftables-gui"
 LABEL org.opencontainers.image.description="Web UI para configurar nftables (com suporte a Docker)"
 LABEL org.opencontainers.image.licenses="GPL-3.0-or-later"
 
-# Copia código
 COPY . /opt/app
 WORKDIR /opt/app/nftables-frontend
 
-# Dependências Python + sistema (apenas o necessário)
+# ▼▼ AQUI: adiciona 'hug' e faz o symlink /usr/bin/hug -> /usr/local/bin/hug
 RUN pip install --no-cache-dir \
       gunicorn \
       flask==3.0.1 \
@@ -22,14 +20,11 @@ RUN pip install --no-cache-dir \
       matplotlib \
       python-Levenshtein \
       requests \
+      hug \
  && apt-get update \
- && apt-get install -y --no-install-recommends \
-      nftables \
-      iproute2 \
+ && apt-get install -y --no-install-recommends nftables iproute2 \
+ && ln -s /usr/local/bin/hug /usr/bin/hug \
  && rm -rf /var/lib/apt/lists/* /var/cache/* /var/log/* /tmp/*
 
-# Persistência padrão do app
 VOLUME ["/opt/app/nftables-frontend/instance","/opt/app/nftables-frontend/static/img"]
-
-# Entrypoint do servidor
-ENTRYPOINT ["/usr/local/bin/gunicorn","-c","gunicorn.conf.py"]
+ENTRYPOINT  ["/usr/local/bin/gunicorn","-c","gunicorn.conf.py"]
