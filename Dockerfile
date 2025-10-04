@@ -1,13 +1,16 @@
-FROM python:3.13-bookworm
+FROM python:3.12-bookworm
 
 LABEL org.opencontainers.image.source="https://github.com/DZ-IO/nftables-gui"
 LABEL org.opencontainers.image.description="Web UI para configurar nftables (com suporte a Docker)"
 LABEL org.opencontainers.image.licenses="GPL-3.0-or-later"
 
+ENV PIP_ROOT_USER_ACTION=ignore \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PYTHONDONTWRITEBYTECODE=1
+
 COPY . /opt/app
 WORKDIR /opt/app/nftables-frontend
 
-# ▼▼ AQUI: adiciona 'hug' e faz o symlink /usr/bin/hug -> /usr/local/bin/hug
 RUN pip install --no-cache-dir \
       gunicorn \
       flask==3.0.1 \
@@ -27,4 +30,4 @@ RUN pip install --no-cache-dir \
  && rm -rf /var/lib/apt/lists/* /var/cache/* /var/log/* /tmp/*
 
 VOLUME ["/opt/app/nftables-frontend/instance","/opt/app/nftables-frontend/static/img"]
-ENTRYPOINT  ["/usr/local/bin/gunicorn","-c","gunicorn.conf.py"]
+ENTRYPOINT ["/usr/local/bin/gunicorn","-c","gunicorn.conf.py"]
