@@ -1,10 +1,10 @@
-FROM python:3.11-slim
+# Dockerfile (raiz do repo)
+FROM python:3.13-slim
 
-ENV PYTHONUNBUFFERED=1 \
-    PIP_NO_CACHE_DIR=1 \
-    PIP_ROOT_USER_ACTION=ignore
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
 
-# Binários p/ chamar 'nft' (a UI invoca via shell)
+# Sistema / nftables + bindings python
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
       nftables \
@@ -15,9 +15,7 @@ RUN apt-get update \
 WORKDIR /opt/app
 COPY . /opt/app
 
-# Dependências Python
-# - numpy<2 para evitar np.unicode_
-# - falcon<3 p/ compat com hug 2.x
+# Dependências Python (pinos para compatibilidade com Hug/Falcon)
 RUN python -m pip install --upgrade pip \
  && pip install \
       "gunicorn==23.0.0" \
@@ -35,9 +33,11 @@ RUN python -m pip install --upgrade pip \
       "falcon<3" \
       "hug==2.6.1"
 
-# Porta interna do Gunicorn
+# App roda a UI a partir deste diretório
 WORKDIR /opt/app/nftables-frontend
+
+# Porta do Gunicorn exposta internamente
 EXPOSE 10001
 
-# Sobe o Gunicorn usando a config (que já define wsgi_app)
+# Sobe o Gunicorn com a conf do projeto
 ENTRYPOINT ["/usr/local/bin/gunicorn","-c","gunicorn.conf.py"]
