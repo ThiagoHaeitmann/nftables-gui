@@ -1,12 +1,6 @@
 FROM python:3.12-bookworm
 
-ENV PIP_ROOT_USER_ACTION=ignore \
-    PIP_DISABLE_PIP_VERSION_CHECK=1 \
-    PYTHONDONTWRITEBYTECODE=1
-
-LABEL org.opencontainers.image.source="https://github.com/DZ-IO/nftables-gui"
-LABEL org.opencontainers.image.description="Web UI para configurar nftables (com suporte a Docker)"
-LABEL org.opencontainers.image.licenses="GPL-3.0-or-later"
+ENV PIP_ROOT_USER_ACTION=ignore PIP_DISABLE_PIP_VERSION_CHECK=1 PYTHONDONTWRITEBYTECODE=1
 
 WORKDIR /opt/app
 COPY . /opt/app
@@ -22,12 +16,15 @@ RUN pip install --no-cache-dir \
       flask-wtf==1.2.1 \
       email_validator \
       matplotlib \
-      numpy==1.26.4 \ 
+      numpy==1.26.4 \
       python-Levenshtein \
       requests \
       hug \
  && apt-get update \
- && apt-get install -y --no-install-recommends nftables iproute2 \
+ && apt-get install -y --no-install-recommends \
+      nftables \
+      iproute2 \
+      python3-distutils \   # <— AQUI resolve o ModuleNotFoundError: distutils
  && ln -s /usr/local/bin/hug /usr/bin/hug \
  && rm -rf /var/lib/apt/lists/* /var/cache/* /var/log/* /tmp/*
 
