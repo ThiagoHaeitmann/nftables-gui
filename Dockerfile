@@ -24,7 +24,7 @@ RUN pip install --no-cache-dir \
  && apt-get install -y --no-install-recommends \
       nftables \
       iproute2 \
-      python3-distutils \   # <— AQUI resolve o ModuleNotFoundError: distutils
+      python3-distutils \
  && ln -s /usr/local/bin/hug /usr/bin/hug \
  && rm -rf /var/lib/apt/lists/* /var/cache/* /var/log/* /tmp/*
 
