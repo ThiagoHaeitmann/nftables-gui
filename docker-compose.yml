@@ -1,24 +1,24 @@
+version: "3.8"
+
 services:
   nftables-gui:
-    build: .
-    # Porta interna deve bater com o -b do gunicorn
-    expose:
-      - "8000"
-    environment:
-      - PORT=8000
-      - PYTHONPATH=/usr/lib/python3/dist-packages
-    # Se o container vai manipular nftables do host, dê capacidades
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: nftables-gui
+    restart: unless-stopped
+    # Publica 8080 no host -> 8000 no container (porta do Gunicorn)
+    ports:
+      - "8080:8000"
+    # Se sua app precisa de capabilities para manipular nftables no host,
+    # comente/descomente conforme seu ambiente:
     cap_add:
       - NET_ADMIN
-    # Se precisar do /etc/nftables.conf do host, monte como volume (opcional)
-    # volumes:
-    #   - /etc/nftables.conf:/etc/nftables.conf:rw
-
-  nft-proxy:
-    image: nginx:alpine
-    ports:
-      - "80:80"
-    depends_on:
-      - nftables-gui
+      - SYS_ADMIN
     volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - /etc/nftables.conf:/etc/nftables.conf
+      - /etc/nftables:/etc/nftables
+    environment:
+      # Ajuste conforme seu setup
+      - GUNICORN_WORKERS=2
+      - GUNICORN_TIMEOUT=120
