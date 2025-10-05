@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   nftables-gui:
     build:
@@ -14,6 +12,7 @@ services:
     environment:
       NFT_GUI_USER: ${NFT_GUI_USER:-admin}
       NFT_GUI_PASS: ${NFT_GUI_PASS:-troque-isto}
+      FLASK_ENV: production
     restart: unless-stopped
 
   nft-proxy:
