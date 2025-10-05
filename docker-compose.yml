@@ -17,14 +17,14 @@ services:
 
   nft-proxy:
     image: nginx:alpine
+    container_name: nft-proxy
     depends_on:
       - nftables-gui
+    ports:
+      - "80:80"
+      - "443:443"
     volumes:
-      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-    networks:
-      - proxy
+      - ./nginx/nftables.conf:/etc/nginx/conf.d/default.conf:ro
 
 networks:
   proxy:
