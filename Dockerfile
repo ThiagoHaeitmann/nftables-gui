@@ -1,15 +1,28 @@
-FROM python:3.12-bookworm
+# Base estável p/ HUG/Falcon (tem cgi e distutils)
+FROM python:3.11-slim
 
-ENV PIP_ROOT_USER_ACTION=ignore \
-    PIP_DISABLE_PIP_VERSION_CHECK=1 \
-    PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_ROOT_USER_ACTION=ignore
 
+# deps de sistema p/ nftables
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends \
+      nftables \
+      python3-nftables \
+      libnftables1 \
+ && rm -rf /var/lib/apt/lists/*
+
+# cópia do código
 WORKDIR /opt/app
 COPY . /opt/app
-WORKDIR /opt/app/nftables-frontend
 
-RUN pip install --no-cache-dir \
-      gunicorn \
+# deps python
+# - numpy<2 porque hug usa numpy.unicode_
+# - falcon<3 porque hug depende da 2.x
+RUN python -m pip install --upgrade pip \
+ && pip install \
+      gunicorn==23.0.0 \
       flask==3.0.1 \
       flask-bootstrap==3.3.7.1 \
       flask_sqlalchemy==3.1.1 \
@@ -18,17 +31,18 @@ RUN pip install --no-cache-dir \
       flask-wtf==1.2.1 \
       email_validator \
       matplotlib \
-      numpy==1.26.4 \
       python-Levenshtein \
       requests \
-      hug \
- && apt-get update \
- && apt-get install -y --no-install-recommends \
-      nftables \
-      iproute2 \
-      python3-distutils \
- && ln -s /usr/local/bin/hug /usr/bin/hug \
- && rm -rf /var/lib/apt/lists/* /var/cache/* /var/log/* /tmp/*
+      "numpy<2" \
+      "falcon<3" \
+      "hug==2.6.1" \
+ && ln -s /usr/local/bin/hug /usr/bin/hug
 
-VOLUME ["/opt/app/nftables-frontend/instance","/opt/app/nftables-frontend/static/img"]
-ENTRYPOINT ["/usr/local/bin/gunicorn","-c","gunicorn.conf.py"]
+# roda a app no diretório do frontend
+WORKDIR /opt/app/nftables-frontend
+
+# porta da app (Dokploy/Traefik vão apontar pra ela)
+EXPOSE 10001
+
+# CHAVE: dizer ao gunicorn qual app carregar
+ENTRYPOINT ["/usr/local/bin/gunicorn","-c","gunicorn.conf.py","app:app"]
