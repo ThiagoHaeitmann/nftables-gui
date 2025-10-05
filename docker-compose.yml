@@ -1,0 +1,40 @@
+version: "3.9"
+
+services:
+  nftables-gui:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    network_mode: host
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    security_opt:
+      - no-new-privileges:true
+    environment:
+      NFT_GUI_USER: ${NFT_GUI_USER:-admin}
+      NFT_GUI_PASS: ${NFT_GUI_PASS:-troque-isto}
+    restart: unless-stopped
+
+  nft-proxy:
+    image: nginx:alpine
+    depends_on:
+      - nftables-gui
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    extra_hosts:
+      - "host.docker.internal:host-gateway"   # resolve host no Linux
+    networks:
+      - proxy
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.nftgui.rule=Host(`${NFT_HOSTNAME:-nft.haeicore.com.br}`)
+      - traefik.http.routers.nftgui.entrypoints=websecure
+      - traefik.http.routers.nftgui.tls=true
+      - traefik.http.services.nftgui.loadbalancer.server.port=8080
+    restart: unless-stopped
+
+networks:
+  proxy:
+    external: true
+    name: dokploy-network
