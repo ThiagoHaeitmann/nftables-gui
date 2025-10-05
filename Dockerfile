@@ -1,10 +1,7 @@
-# Dockerfile (raiz do repo)
+# Dockerfile (projeto raiz)
 FROM python:3.13-slim
 
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1
-
-# Sistema / nftables + bindings python
+# Sistema / nftables e bindings Python
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
       nftables \
@@ -15,7 +12,7 @@ RUN apt-get update \
 WORKDIR /opt/app
 COPY . /opt/app
 
-# Dependências Python (pinos para compatibilidade com Hug/Falcon)
+# Bibliotecas Python (sem numpy/matplotlib)
 RUN python -m pip install --upgrade pip \
  && pip install \
       "gunicorn==23.0.0" \
@@ -26,18 +23,16 @@ RUN python -m pip install --upgrade pip \
       "flask-login==0.6.3" \
       "flask-wtf==1.2.1" \
       "email_validator" \
-      "matplotlib" \
       "python-Levenshtein" \
       "requests" \
-      "numpy<2" \
       "falcon<3" \
       "hug==2.6.1"
 
-# App roda a UI a partir deste diretório
+# A app roda daqui
 WORKDIR /opt/app/nftables-frontend
 
-# Porta do Gunicorn exposta internamente
-EXPOSE 10001
+# Volumes como no seu setup
+VOLUME ["/opt/app/nftables-frontend/instance","/opt/app/nftables-frontend/static/img"]
 
-# Sobe o Gunicorn com a conf do projeto
+# Gunicorn (módulo/arquivo definido no gunicorn.conf.py)
 ENTRYPOINT ["/usr/local/bin/gunicorn","-c","gunicorn.conf.py"]
