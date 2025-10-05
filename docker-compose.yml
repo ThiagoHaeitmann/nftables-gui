@@ -4,21 +4,15 @@ services:
   nftables-gui:
     build:
       context: .
-      dockerfile: Dockerfile
     container_name: nftables-gui
     restart: unless-stopped
-    # Publica 8080 no host -> 8000 no container (porta do Gunicorn)
-    ports:
-      - "8080:8000"
-    # Se sua app precisa de capabilities para manipular nftables no host,
-    # comente/descomente conforme seu ambiente:
-    cap_add:
-      - NET_ADMIN
-      - SYS_ADMIN
-    volumes:
-      - /etc/nftables.conf:/etc/nftables.conf
-      - /etc/nftables:/etc/nftables
+    expose:
+      - "8000"
     environment:
-      # Ajuste conforme seu setup
       - GUNICORN_WORKERS=2
       - GUNICORN_TIMEOUT=120
+    # labels de roteamento (exemplo Traefik) — ajuste para sua plataforma
+    # labels:
+    #   - "traefik.enable=true"
+    #   - "traefik.http.routers.nftables-gui.rule=Host(`seu-dominio.com`)"
+    #   - "traefik.http.services.nftables-gui.loadbalancer.server.port=8000"
